@@ -1,0 +1,19 @@
+{
+  "name": "PULSE//SCAN — PPG & Polygraphe",
+  "short_name": "PulseScan",
+  "description": "Scanner cardiaque optique par photopléthysmographie et détecteur de stress en temps réel.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06090f",
+  "theme_color": "#06090f",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2306090f'/%3E%3Cpath d='M56 264h110l44-136 68 264 52-128h126' fill='none' stroke='%23ff2a55' stroke-width='32' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

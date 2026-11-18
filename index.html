@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#06090f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PulseScan" />
+  <title>PULSE//SCAN — PPG & Polygraphe</title>
+  <link rel="manifest" href="manifest.json" />
+  <link id="apple-icon" rel="apple-touch-icon" href="" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Bandeau lumineux haute intensité pour éclairer le doigt sur iPhone (caméra frontale) -->
+  <div id="ios-light-banner" class="ios-light-banner hidden">
+    <span>POSEZ VOTRE DOIGT SUR LA CAMÉRA AVANT ICI</span>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="pulse-dot" id="status-dot"></span>
+        <h1>PULSE<span>//</span>SCAN</h1>
+      </div>
+      <div class="controls-top">
+        <select id="camera-mode-select" aria-label="Mode caméra">
+          <option value="auto">Auto (Flash / Écran)</option>
+          <option value="rear">Android (Flash Arrière)</option>
+          <option value="front">iPhone (Caméra Avant)</option>
+        </select>
+        <button id="btn-sound" class="icon-btn active" title="Son bip cardiaque">🔊</button>
+      </div>
+    </header>
+
+    <!-- Statut du capteur -->
+    <section class="sensor-bar">
+      <div id="finger-status-badge" class="badge badge-idle">
+        <span id="finger-status-text">Capteur en veille</span>
+      </div>
+      <div class="signal-meter">
+        <span>Signal</span>
+        <div class="meter-track">
+          <div id="signal-quality-bar" class="meter-fill"></div>
+        </div>
+        <strong id="signal-quality-val">0%</strong>
+      </div>
+    </section>
+
+    <!-- Oscilloscope PPG en temps réel -->
+    <section class="scope-card">
+      <canvas id="ppg-canvas"></canvas>
+      <div class="scope-overlay">
+        <span>PPG OPTIQUE // 60 FPS</span>
+        <span id="fps-counter">0 FPS</span>
+      </div>
+    </section>
+
+    <!-- Navigation entre les deux modes -->
+    <nav class="mode-tabs">
+      <button id="tab-monitor" class="tab-btn active">Moniteur Cardiaque</button>
+      <button id="tab-polygraph" class="tab-btn">Détecteur de Stress</button>
+    </nav>
+
+    <!-- PANNEAU 1 : MONITEUR CARDIAQUE -->
+    <main id="panel-monitor" class="panel active">
+      <div class="metrics-grid">
+        <div class="metric-card primary">
+          <span class="metric-label">RYTHME CARDIAQUE</span>
+          <div class="metric-value">
+            <strong id="bpm-value">--</strong>
+            <small>BPM</small>
+          </div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">VARIABILITÉ (RMSSD)</span>
+          <div class="metric-value">
+            <strong id="hrv-value">--</strong>
+            <small>ms</small>
+          </div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">INDICE STRESS</span>
+          <div class="metric-value">
+            <strong id="stress-value">--</strong>
+            <small>%</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="session-stats">
+        <div><span>MIN</span><strong id="stat-min">--</strong></div>
+        <div><span>MOYENNE</span><strong id="stat-avg">--</strong></div>
+        <div><span>MAX</span><strong id="stat-max">--</strong></div>
+      </div>
+
+      <div class="history-box">
+        <div class="history-header">
+          <h2>Historique local</h2>
+          <button id="btn-clear-history" class="text-btn">Effacer</button>
+        </div>
+        <ul id="history-list" class="history-list">
+          <li class="empty-msg">Aucune mesure enregistrée.</li>
+        </ul>
+      </div>
+    </main>
+
+    <!-- PANNEAU 2 : POLYGRAPHE / DÉTECTEUR DE MENSONGES -->
+    <main id="panel-polygraph" class="panel">
+      <div class="poly-card">
+        <div class="poly-header">
+          <span class="poly-tag">ANALYSE SYMPATHIQUE</span>
+          <h2 id="poly-step-title">Étape 1 : Calibration</h2>
+          <p id="poly-step-desc">Démarrez le scanner, posez le doigt et lancez la calibration au repos (10s).</p>
+        </div>
+
+        <div class="progress-track">
+          <div id="poly-progress-fill" class="progress-fill"></div>
+        </div>
+
+        <div class="poly-compare">
+          <div>
+            <span>BASE REPOS</span>
+            <strong id="poly-baseline-bpm">-- BPM</strong>
+            <small id="poly-baseline-hrv">HRV: -- ms</small>
+          </div>
+          <div>
+            <span>EN DIRECT</span>
+            <strong id="poly-live-bpm">-- BPM</strong>
+            <small id="poly-live-delta">Écart: 0 BPM</small>
+          </div>
+        </div>
+
+        <div id="poly-verdict-box" class="verdict-box hidden">
+          <h3 id="poly-verdict-title">--</h3>
+          <p id="poly-verdict-detail">--</p>
+        </div>
+
+        <div class="poly-actions">
+          <button id="btn-poly-calibrate" class="action-btn secondary">1. Calibrer (10s)</button>
+          <button id="btn-poly-question" class="action-btn primary" disabled>2. Tester une question (6s)</button>
+          <button id="btn-poly-reset" class="text-btn">Réinitialiser</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bouton principal d'activation -->
+    <footer class="dock">
+      <button id="btn-power" class="power-btn">
+        <span class="power-icon">◉</span>
+        <span id="power-label">ACTIVER LE SCANNER</span>
+      </button>
+      <p class="disclaimer">Outil expérimental par photopléthysmographie (PPG) — Usage éducatif et ludique uniquement.</p>
+    </footer>
+  </div>
+
+  <!-- Éléments cachés pour le traitement vidéo -->
+  <video id="camera-video" playsinline muted class="hidden"></video>
+  <canvas id="proc-canvas" width="64" height="64" class="hidden"></canvas>
+
+  <script src="app.js"></script>
+</body>
+</html>
